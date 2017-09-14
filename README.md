@@ -17,7 +17,7 @@ install and build the project by running:
 To run the program: (`tea` is "the-elm-architecture")
 
 ```sh
-stack exec tea
+> stack exec tea
 ```
 
 This will prompt you to enter a message. The program will recognise:
