@@ -19,3 +19,4 @@ executable tea
                      , transformers
                      , text
                      , directory
+                     , trifecta

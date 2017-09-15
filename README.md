@@ -24,6 +24,7 @@ This will prompt you to enter a message. The program will recognise:
 
 + `addOne`
 + `addTwo`
++ `add` + a number
 + `minusOne`
 + `minusTwo`
 + `sayHello`
