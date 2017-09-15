@@ -34,49 +34,6 @@ main = do
   evalStateT appState 0
 
 
-msgParser :: Parser Msg
-msgParser = try singleArgMsgs <|> try addMsg
-
-
-addMsg :: Parser Msg
-addMsg = string "ADD" >> spaces >> integer >>= return . Add
-
-
-singleArgMsgs :: Parser Msg
-singleArgMsgs = go singleMsgs
-  where go (x:xs) = stringToMsg <$> foldr (<|>) (ts x) (map ts xs)
-        ts        = try . string
-
-
-singleMsgs :: [String]
-singleMsgs = map (map toUpper) . map show $
-    [ AddOne
-    , AddTwo
-    , MinusOne
-    , MinusTwo
-    , SayHello
-    , CurrentDir
-    ]
-
-stringToMsg :: String -> Msg
-stringToMsg xs =
-  case xs of
-    "ADDONE"     -> AddOne
-    "ADDTWO"     -> AddTwo
-    "MINUSONE"   -> MinusOne
-    "MINUSTWO"   -> MinusTwo
-    "SAYHELLO"   -> SayHello
-    "CURRENTDIR" -> CurrentDir
-    _            -> NoOp
-
-
-parseMsg :: String -> Msg
-parseMsg msg =
-  case parseString msgParser mempty (map toUpper msg) of
-    Success msg -> msg
-    Failure _   -> NoOp
-
-
 appState :: StateT Model IO ()
 appState = do
   msg   <- liftIO $ parseMsg <$> getLine
@@ -84,7 +41,7 @@ appState = do
   let (newM, cmd) = update msg model
   liftIO $ do
     mapM_ putStrLn
-      [  "msg was: "  ++ show msg
+      [ "msg was: "   ++ show msg
       , "new model: " ++ show newM, "" ]
     processCmd cmd
   put newM
@@ -116,3 +73,55 @@ sayHello = putStrLn "Hello I'm a Cmd!"
 printCurrentDir :: IO ()
 printCurrentDir =
   ("Current Dir is: " ++) <$> getCurrentDirectory >>= putStrLn
+
+
+
+-- Parsers
+
+msgParser :: Parser Msg
+msgParser = try singleArgMsgs <|> try addMsg
+
+
+addMsg :: Parser Msg
+addMsg = Add <$> (caseInsensitive "Add" >> spaces >> integer)
+
+
+singleArgMsgs :: Parser Msg
+singleArgMsgs = go (map show singleMsgs)
+  where go (x:xs) = stringToMsg <$> foldr ((<|>) . tci) (tci x) xs
+        tci       = try . caseInsensitive
+
+
+caseInsensitive :: String -> Parser String
+caseInsensitive = mapM ci
+  where ci x =  try (char (toLower x))
+            <|> try (char (toUpper x))
+
+
+singleMsgs :: [Msg]
+singleMsgs =
+  [ AddOne
+  , AddTwo
+  , MinusOne
+  , MinusTwo
+  , SayHello
+  , CurrentDir
+  ]
+
+stringToMsg :: String -> Msg
+stringToMsg xs =
+  case map toUpper xs of
+    "ADDONE"     -> AddOne
+    "ADDTWO"     -> AddTwo
+    "MINUSONE"   -> MinusOne
+    "MINUSTWO"   -> MinusTwo
+    "SAYHELLO"   -> SayHello
+    "CURRENTDIR" -> CurrentDir
+    _            -> NoOp
+
+
+parseMsg :: String -> Msg
+parseMsg msg =
+  case parseString msgParser mempty msg of
+    Success msg -> msg
+    Failure _   -> NoOp
