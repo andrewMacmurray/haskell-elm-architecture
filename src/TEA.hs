@@ -78,6 +78,13 @@ printCurrentDir =
 
 -- Parsers
 
+parseMsg :: String -> Msg
+parseMsg msg =
+  case parseString msgParser mempty msg of
+    Success msg -> msg
+    Failure _   -> NoOp
+
+
 msgParser :: Parser Msg
 msgParser = try singleArgMsgs <|> try addMsg
 
@@ -118,10 +125,3 @@ stringToMsg xs =
     "SAYHELLO"   -> SayHello
     "CURRENTDIR" -> CurrentDir
     _            -> NoOp
-
-
-parseMsg :: String -> Msg
-parseMsg msg =
-  case parseString msgParser mempty msg of
-    Success msg -> msg
-    Failure _   -> NoOp
