@@ -2,14 +2,13 @@
 
 module Main where
 
-import           Control.Applicative       ((<|>))
-import           Control.Monad             (forever)
-import           Control.Monad.Trans       (liftIO)
-import           Control.Monad.Trans.State (StateT, evalStateT, get, put)
-import           Data.Char                 (toLower, toUpper)
-import qualified Data.Text.IO              as T
-import           System.Directory          (getCurrentDirectory)
-import           Text.Trifecta
+import Control.Applicative       ((<|>))
+import Control.Monad             (forever)
+import Control.Monad.Trans       (liftIO)
+import Control.Monad.Trans.State (StateT, evalStateT, get, put)
+import Data.Char                 (toLower, toUpper)
+import System.Directory          (getCurrentDirectory)
+import Text.Trifecta
 
 data Msg =
     AddOne
