@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Main where
 
 import Control.Applicative       ((<|>))
@@ -100,8 +98,8 @@ singleArgMsgs = go (map show singleMsgs)
 
 caseInsensitive :: String -> Parser String
 caseInsensitive = mapM ci
-  where ci x =  try (char (toLower x))
-            <|> try (char (toUpper x))
+  where ci x =  try (char $ toLower x)
+            <|> try (char $ toUpper x)
 
 
 singleMsgs :: [Msg]
