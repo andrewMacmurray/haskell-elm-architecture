@@ -3,6 +3,7 @@
 module Main where
 
 import           Control.Applicative       ((<|>))
+import           Control.Monad             (forever)
 import           Control.Monad.Trans       (liftIO)
 import           Control.Monad.Trans.State (StateT, evalStateT, get, put)
 import           Data.Char                 (toLower, toUpper)
@@ -35,7 +36,7 @@ main = do
 
 
 appState :: StateT Model IO ()
-appState = do
+appState = forever $ do
   msg   <- liftIO $ parseMsg <$> getLine
   model <- get
   let (newM, cmd) = update msg model
@@ -45,7 +46,6 @@ appState = do
       , "new model: " ++ show newM, "" ]
     processCmd cmd
   put newM
-  appState
 
 
 processCmd :: Cmd -> IO ()
