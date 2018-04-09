@@ -2,7 +2,7 @@
 
 A Haskell program to mimic the Elm Architecture
 
-The `main` function runs a state loop where the user can enter a `message` via the command line. The `model` (a single `integer`) will update whilst performing any effects needed. It uses the `StateT` [monad transformer](http://book.realworldhaskell.org/read/monad-transformers.html) to combine stateful computations and IO together.
+The `main` function runs a state loop where the user can enter a `message` via the command line. The `model` (a single `integer`) will update whilst performing any effects needed. It uses the `StateT` [monad transformer](http://book.realworldhaskell.org/read/monad-transformers.html) to combine stateful computations and IO.
 
 ### Installing and Running
 
@@ -20,16 +20,11 @@ To run the program: (`tea` is "the-elm-architecture")
 > stack exec tea
 ```
 
-This will prompt you to enter a message. The program will recognise:
+You can then enter a message via the command line. The program will recognise:
 
-+ `addOne`
-+ `addTwo`
-+ `add` + a number
-+ `minusOne`
-+ `minusTwo`
-+ `sayHello`
-+ `currentDir`
++ `add 1`
++ `add2 `
++ `hello`
++ `dir`
 
-These can be in caps or lowercase
-
-If the program doesn't recognise a message it will return `NoOp`
+If the program will print the current state if it doesn't recognise the input
