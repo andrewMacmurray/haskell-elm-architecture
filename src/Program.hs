@@ -75,7 +75,8 @@ programState = forever $ do
       let (m', cmd) = update prog msg model
       lift $ put m'
       processCmd cmd
-      liftIO . putStrLn $ "model updated: " ++ show m'
+      m'' <- lift get
+      liftIO . putStrLn $ "model updated: " ++ show m''
 
     Nothing -> do
       liftIO $ do

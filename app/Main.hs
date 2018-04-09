@@ -3,6 +3,7 @@ module Main where
 import Prelude          hiding (init)
 import Program
 import System.Directory (getCurrentDirectory)
+import System.Random    (randomRIO)
 
 main :: IO ()
 main = mkProgram init update view
@@ -15,6 +16,7 @@ data Msg =
    | Hello
    | Add Int
    | CurrentDir
+   | RandomAdd
 
 
 -- Init
@@ -32,6 +34,7 @@ update msg model =
     Hello      -> (model, sayHello)
     Add n      -> (model + n, noCmd)
     CurrentDir -> (model, printCurrentDir)
+    RandomAdd  -> (model, randomAdd)
 
 
 -- Cmds
@@ -42,14 +45,17 @@ printCurrentDir = mkCmd NoOp $ ("Current Dir is: " ++) <$> getCurrentDirectory >
 sayHello :: Cmd Msg
 sayHello = mkCmd NoOp $ putStrLn "hellooooo!"
 
+randomAdd :: Cmd Msg
+randomAdd = mkCmd Add $ randomRIO (1, 100)
 
 -- View
 
 view :: Model -> View Msg
 view _ =
   mkView
-    [ ("hello", Hello)
-    , ("add 1", Add 1)
-    , ("add 2", Add 2)
-    , ("dir",   CurrentDir)
+    [ ("hello",  Hello)
+    , ("add 1",  Add 1)
+    , ("add 2",  Add 2)
+    , ("dir",    CurrentDir)
+    , ("random", RandomAdd)
     ]

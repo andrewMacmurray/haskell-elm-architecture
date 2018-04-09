@@ -26,5 +26,6 @@ You can then enter a message via the command line. The program will recognise:
 + `add2 `
 + `hello`
 + `dir`
++ `random`
 
 If the program will print the current state if it doesn't recognise the input
