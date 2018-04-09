@@ -59,9 +59,9 @@ type ProgramState msg model =
 
 
 runProgram :: Show model => Program msg model -> IO ()
-runProgram p = do
-  let (m, cmd) = init p
-      read_ x  = runReaderT x p
+runProgram prog = do
+  let (m, cmd) = init prog
+      read_ x  = runReaderT x prog
   m' <- execStateT (read_ $ processCmd cmd) m
   evalStateT (read_ programState) m'
 

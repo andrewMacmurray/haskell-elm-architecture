@@ -48,6 +48,7 @@ sayHello = mkCmd NoOp $ putStrLn "hellooooo!"
 randomAdd :: Cmd Msg
 randomAdd = mkCmd Add $ randomRIO (1, 100)
 
+
 -- View
 
 view :: Model -> View Msg
