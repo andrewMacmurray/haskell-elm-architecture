@@ -16,22 +16,18 @@ import           Control.Monad.Trans.State
 import qualified Data.Map                   as M
 import           Prelude                    hiding (init)
 
-
-type ProgramState msg model =
-  ReaderT (Program msg model) (StateT model IO) ()
-
-newtype View msg = View (M.Map String msg)
-
-data Cmd msg =
-    None
-  | One (IO msg)
-
 data Program msg model =
   Program {
       init   :: (model, Cmd msg)
     , update :: msg -> model -> (model, Cmd msg)
     , view   :: model -> View msg
     }
+
+data Cmd msg =
+    None
+  | One (IO msg)
+
+newtype View msg = View (M.Map String msg)
 
 
 -- Construct and run Program
@@ -57,6 +53,10 @@ mkCmd msg action = One $ msg <$> action
 
 
 -- Handle Program state
+
+type ProgramState msg model =
+  ReaderT (Program msg model) (StateT model IO) ()
+
 
 runProgram :: Show model => Program msg model -> IO ()
 runProgram p = do
