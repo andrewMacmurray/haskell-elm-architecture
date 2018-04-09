@@ -57,10 +57,10 @@ runProgram :: Show model => Program msg model -> IO ()
 runProgram p = do
   let (m, cmd) = init p
   m' <- execStateT (processCmd p cmd) m
-  evalStateT (appState p) m'
+  evalStateT (programState p) m'
 
-appState :: Show model => Program msg model -> StateT model IO ()
-appState p = forever $ do
+programState :: Show model => Program msg model -> StateT model IO ()
+programState p = forever $ do
   model  <- get
   parsed <- liftIO $ parseMsg (view p model) <$> getLine
   case parsed of
