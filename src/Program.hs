@@ -8,12 +8,17 @@ module Program (
   , mkCmd
 ) where
 
-import           Control.Monad             (forever)
-import           Control.Monad.IO.Class    (liftIO)
+import           Control.Monad              (forever)
+import           Control.Monad.IO.Class     (liftIO)
+import           Control.Monad.Trans.Class  (lift)
+import           Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import           Control.Monad.Trans.State
-import qualified Data.Map                  as M
-import           Prelude                   hiding (init)
+import qualified Data.Map                   as M
+import           Prelude                    hiding (init)
 
+
+type ProgramState msg model =
+  ReaderT (Program msg model) (StateT model IO) ()
 
 newtype View msg = View (M.Map String msg)
 
@@ -56,25 +61,27 @@ mkCmd msg action = One $ msg <$> action
 runProgram :: Show model => Program msg model -> IO ()
 runProgram p = do
   let (m, cmd) = init p
-  m' <- execStateT (processCmd p cmd) m
-  evalStateT (programState p) m'
+      read_ x  = runReaderT x p
+  m' <- execStateT (read_ $ processCmd cmd) m
+  evalStateT (read_ programState) m'
 
-programState :: Show model => Program msg model -> StateT model IO ()
-programState p = forever $ do
-  model  <- get
-  parsed <- liftIO $ parseMsg (view p model) <$> getLine
+programState :: Show model => ProgramState msg model
+programState = forever $ do
+  prog   <- ask
+  model  <- lift get
+  parsed <- liftIO $ parseMsg (view prog model) <$> getLine
   case parsed of
     Just msg -> do
-      let (m', cmd) = update p msg model
-      newM  <- liftIO $ execStateT (processCmd p cmd) m'
-      liftIO . putStrLn $ "model updated: " ++ show newM
-      put newM
+      let (m', cmd) = update prog msg model
+      lift $ put m'
+      processCmd cmd
+      liftIO . putStrLn $ "model updated: " ++ show m'
 
     Nothing -> do
       liftIO $ do
         putStrLn "unrecognized input"
         putStrLn $ "model: " ++ show model
-      put model
+      lift $ put model
 
 
 -- Handle Messages and Cmds
@@ -82,12 +89,13 @@ programState p = forever $ do
 parseMsg :: View msg -> String -> Maybe msg
 parseMsg (View mappings) input = M.lookup input mappings
 
-processCmd :: Show model => Program msg model -> Cmd msg -> StateT model IO ()
-processCmd p None = return ()
-processCmd p (One cmd) = do
-  model <- get
+processCmd :: Show model =>  Cmd msg -> ProgramState msg model
+processCmd None = return ()
+processCmd (One cmd) = do
+  prog  <- ask
+  model <- lift get
   msg   <- liftIO cmd
-  let (newM, newCmd) = update p msg model
+  let (newM, newCmd) = update prog msg model
   liftIO . putStrLn $ "processed command, next model: " ++ show newM
-  put newM
-  processCmd p newCmd
+  lift $ put newM
+  processCmd newCmd
