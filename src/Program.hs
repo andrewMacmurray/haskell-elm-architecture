@@ -33,10 +33,10 @@ newtype View msg = View (M.Map String msg)
 -- Construct and run Program
 
 mkProgram :: Show model
-        => (model, Cmd msg)
-        -> (msg -> model -> (model, Cmd msg))
-        -> (model -> View msg)
-        -> IO ()
+          => (model, Cmd msg)
+          -> (msg -> model -> (model, Cmd msg))
+          -> (model -> View msg)
+          -> IO ()
 mkProgram i u v = runProgram $ Program i u v
 
 mkView :: [(String, msg)] -> View msg
