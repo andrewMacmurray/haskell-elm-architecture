@@ -23,7 +23,7 @@ To run the program: (`tea` is "the-elm-architecture")
 You can then enter a message via the command line. The program will recognise:
 
 + `add 1`
-+ `add2 `
++ `add 2`
 + `hello`
 + `dir`
 + `random`

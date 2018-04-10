@@ -9,7 +9,7 @@ module Program (
 ) where
 
 import           Control.Monad              (forever)
-import           Control.Monad.IO.Class     (liftIO)
+import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Trans.Class  (lift)
 import           Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import           Control.Monad.Trans.State
@@ -62,8 +62,7 @@ runProgram :: Show model => Program msg model -> IO ()
 runProgram prog = do
   let (m, cmd) = init prog
       read_ x  = runReaderT x prog
-  m' <- execStateT (read_ $ processCmd cmd) m
-  evalStateT (read_ programState) m'
+  execStateT (read_ $ processCmd cmd) m >>= evalStateT (read_ programState)
 
 programState :: Show model => ProgramState msg model
 programState = forever $ do
@@ -72,17 +71,14 @@ programState = forever $ do
   parsed <- liftIO $ parseMsg (view prog model) <$> getLine
   case parsed of
     Just msg -> do
-      let (m', cmd) = update prog msg model
-      lift $ put m'
+      let (newModel, cmd) = update prog msg model
+      lift $ put newModel
       processCmd cmd
-      m'' <- lift get
-      liftIO . putStrLn $ "model updated: " ++ show m''
+      lift get >>= printModel
 
     Nothing -> do
-      liftIO $ do
-        putStrLn "unrecognized input"
-        putStrLn $ "model: " ++ show model
-      lift $ put model
+      liftIO $ putStrLn "unrecognized input"
+      printModel model
 
 
 -- Handle Messages and Cmds
@@ -97,6 +93,12 @@ processCmd (One cmd) = do
   model <- lift get
   msg   <- liftIO cmd
   let (newM, newCmd) = update prog msg model
-  liftIO . putStrLn $ "processed command, next model: " ++ show newM
+  printModel newM
   lift $ put newM
   processCmd newCmd
+
+
+-- Utils
+
+printModel :: (MonadIO m, Show model) => model -> m ()
+printModel = liftIO . putStrLn . ("model: " ++) . show
