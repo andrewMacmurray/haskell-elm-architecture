@@ -55,26 +55,27 @@ mkCmd msg action = One $ msg <$> action
 -- Handle Program state
 
 type ProgramState msg model =
-  ReaderT (Program msg model) (StateT model IO) ()
-
+  StateT model (ReaderT (Program msg model) IO) ()
 
 runProgram :: Show model => Program msg model -> IO ()
 runProgram prog = do
-  let (m, cmd) = init prog
-      read_ x  = runReaderT x prog
-  execStateT (read_ $ processCmd cmd) m >>= evalStateT (read_ programState)
+  let (m, cmd)  = init prog
+      read_ x   = runReaderT x prog
+      initState = read_ . execStateT (processCmd cmd)
+      loopState = read_ . evalStateT programState
+  initState m >>= loopState
 
 programState :: Show model => ProgramState msg model
 programState = forever $ do
-  prog   <- ask
-  model  <- lift get
-  parsed <- liftIO $ parseMsg (view prog model) <$> getLine
-  case parsed of
+  prog    <- lift ask
+  model   <- get
+  viewMsg <- liftIO $ parseMsg (view prog model) <$> getLine
+  case viewMsg of
     Just msg -> do
       let (newModel, cmd) = update prog msg model
-      lift $ put newModel
+      put newModel
       processCmd cmd
-      lift get >>= printModel
+      get >>= printModel
 
     Nothing -> do
       liftIO $ putStrLn "unrecognized input"
@@ -89,12 +90,12 @@ parseMsg (View mappings) input = M.lookup input mappings
 processCmd :: Show model =>  Cmd msg -> ProgramState msg model
 processCmd None = return ()
 processCmd (One cmd) = do
-  prog  <- ask
-  model <- lift get
+  prog  <- lift ask
+  model <- get
   msg   <- liftIO cmd
   let (newM, newCmd) = update prog msg model
   printModel newM
-  lift $ put newM
+  put newM
   processCmd newCmd
 
 
